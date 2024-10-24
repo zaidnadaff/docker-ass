@@ -1,0 +1,80 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Task Manager</title>
+    <style>
+      body {
+        margin: 40px;
+        font-family: Arial, sans-serif;
+      }
+      .task-form {
+        margin-bottom: 20px;
+      }
+      .task-list {
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Task Manager</h1>
+
+    <div class="task-form">
+      <h2>Add New Task</h2>
+      <input type="text" id="taskTitle" placeholder="Task Title" />
+      <input type="text" id="taskDescription" placeholder="Task Description" />
+      <button onclick="createTask()">Add Task</button>
+    </div>
+
+    <div class="task-list">
+      <h2>Tasks</h2>
+      <ul id="tasksList"></ul>
+    </div>
+
+    <script>
+      // Fetch all tasks
+      function loadTasks() {
+        fetch("/tasks")
+          .then((response) => response.json())
+          .then((tasks) => {
+            const tasksList = document.getElementById("tasksList");
+            tasksList.innerHTML = "";
+            tasks.forEach((task) => {
+              tasksList.innerHTML += `
+                            <li>
+                                ${task.title} - ${task.description}
+                                <button onclick="deleteTask(${task.id})">Delete</button>
+                            </li>`;
+            });
+          });
+      }
+
+      // Create new task
+      function createTask() {
+        const title = document.getElementById("taskTitle").value;
+        const description = document.getElementById("taskDescription").value;
+
+        fetch("/tasks", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ title, description }),
+        }).then(() => {
+          loadTasks();
+          document.getElementById("taskTitle").value = "";
+          document.getElementById("taskDescription").value = "";
+        });
+      }
+
+      // Delete task
+      function deleteTask(id) {
+        fetch(`/tasks/${id}`, {
+          method: "DELETE",
+        }).then(() => loadTasks());
+      }
+
+      // Load tasks when page loads
+      loadTasks();
+    </script>
+  </body>
+</html>
